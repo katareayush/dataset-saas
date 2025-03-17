@@ -1,5 +1,5 @@
 const express = require("express");
-const cors = require("cors"); // Keep this import
+const cors = require("cors");
 const morgan = require("morgan");
 const helmet = require("helmet");
 const connectDB = require("./config/db");
@@ -16,19 +16,30 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-// Simplified CORS configuration for Vercel deployment
-app.use(cors({
-  origin: true, // This allows all origins
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-}));
+// Handle OPTIONS preflight requests first, before any other middleware
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(200);
+});
+
+// More permissive CORS configuration
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+});
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet({
-  crossOriginResourcePolicy: false, // This helps with Vercel deployments
-  contentSecurityPolicy: false, // This can help with Firebase integration
+  crossOriginResourcePolicy: false,
+  contentSecurityPolicy: false,
 }));
 app.use(morgan("dev")); // Logging
 
@@ -40,9 +51,6 @@ app.use("/api/users", userRoutes);
 app.get("/", (req, res) => {
   res.json({ message: "API is running" });
 });
-
-// Handle preflight requests
-app.options('*', cors());
 
 // Catch-all route for undefined routes
 app.use("*", (req, res) => {
@@ -56,7 +64,6 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`CORS configured to allow all origins`);
 });
 
 // Handle unhandled promise rejections
