@@ -23,7 +23,8 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await login(email, password);
+      const response = await login(email, password);
+      console.log(response);
       navigate("/dashboard");
     } catch (err) {
       setError(err.message || "Failed to login");
@@ -37,7 +38,8 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await loginWithGoogle();
+      const response = await loginWithGoogle();
+      console.log(response);
       navigate("/dashboard");
     } catch (err) {
       setError(err.message || "Failed to login with Google");

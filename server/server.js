@@ -19,12 +19,13 @@ connectDB();
 
 app.use(
   cors({
-    // origin: ["https://dataset-saas-rose.vercel.app", "http://localhost:5173"],
-    origin:"*",
-    methods: ["GET", "POST", "OPTIONS"],
+    origin: ["http://localhost:5173", "https://dataset-saas-rose.vercel.app"],
+    methods: ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true, 
   })
 );
+
 
 // Middleware
 app.use(express.json());

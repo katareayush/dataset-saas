@@ -57,15 +57,23 @@ const ensureUserExists = async (req, res, next) => {
 
     // Check if user exists in MongoDB
     let user = await User.findOne({ firebaseUid: req.user.uid });
-
+    let role;
+    console.log("USER EMAIL:", req.user.email);
+    console.log("ENV USER:", process.env.ADMIN_EMAIL);
+    if (req.user.email === process.env.ADMIN_EMAIL) {
+      role = "admin";
+    } else {
+      role = "user";
+    }
     // If user doesn't exist, create one
     if (!user) {
       user = new User({
         firebaseUid: req.user.uid,
         email: req.user.email,
-        displayName: req.user.displayName || "",
+        displayName: req.user.name || "",
         photoURL: req.user.photoURL || "",
         createdAt: new Date(),
+        role: role,
       });
 
       await user.save();

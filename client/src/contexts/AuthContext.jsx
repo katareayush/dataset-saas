@@ -26,17 +26,53 @@ export const AuthProvider = ({ children }) => {
   // Login with email and password
   const login = async (email, password) => {
     setError("");
-    try {
-      const user = await loginWithEmailAndPassword(email, password);
+    console.log("Email and password:", email, password)
+    console.log(
+      "Admin credentials in ENV:",
+      !!import.meta.env.VITE_ADMIN_EMAIL,
+      !!import.meta.env.VITE_ADMIN_PASSWORD
+    );
+        try {
+          // Check if admin credentials are provided in environment
 
-      // Verify with backend
-      await syncWithBackend();
+          let user;
+          let isAdmin = false;
 
-      return user;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    }
+          if (
+            email === import.meta.env.VITE_ADMIN_EMAIL &&
+            password === import.meta.env.VITE_ADMIN_PASSWORD
+          ) {
+            // Use admin credentials from environment variables
+            const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+            const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD;
+
+            if (!adminEmail || !adminPassword) {
+              throw new Error(
+                "Admin credentials not properly configured in environment variables"
+              );
+            }
+
+            user = await loginWithEmailAndPassword(adminEmail, adminPassword);
+                      await syncWithBackend(true);
+            isAdmin = true;
+            console.log("Logged in as admin");
+          } else {
+            // Use provided credentials for normal login
+            user = await loginWithEmailAndPassword(email, password);
+                      await syncWithBackend();
+          }
+
+          return user;
+        } catch (err) {
+          setError(err.message);
+          throw err;
+        }
+  };
+
+  // Conditional login - uses admin credentials if env variable is set
+  const conditionalLogin = async (email, password) => {
+    setError("");
+
   };
 
   // Register with email and password
@@ -100,10 +136,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Sync with MongoDB through backend
-  const syncWithBackend = async () => {
+  const syncWithBackend = async (isAdmin = false) => {
     try {
       // Register user in MongoDB if needed
-      await authAPI.register();
+      // If admin login, pass admin role to the backend
+      await authAPI.register(isAdmin ? { role: "admin" } : {});
 
       // Get user data from backend
       const response = await authAPI.verifyToken();
@@ -147,6 +184,7 @@ export const AuthProvider = ({ children }) => {
     currentUser,
     mongoUser,
     login,
+    conditionalLogin,
     register,
     loginWithGoogle: loginWithGoogleProvider,
     logout,
