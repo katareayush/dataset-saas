@@ -17,9 +17,6 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
     // origin: ["https://dataset-saas-rose.vercel.app", "http://localhost:5173"],
@@ -28,6 +25,10 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(helmet()); // Security headers
 app.use(morgan("dev")); // Logging
 
