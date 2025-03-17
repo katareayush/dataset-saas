@@ -1,3 +1,4 @@
+// Main server file
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
@@ -16,31 +17,19 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-// Handle OPTIONS preflight requests first, before any other middleware
-app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.sendStatus(200);
-});
-
-// More permissive CORS configuration
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  next();
-});
+app.use(
+  cors({
+    // origin: ["https://dataset-saas-rose.vercel.app", "http://localhost:5173"],
+    origin:"*",
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(helmet({
-  crossOriginResourcePolicy: false,
-  contentSecurityPolicy: false,
-}));
+app.use(helmet()); // Security headers
 app.use(morgan("dev")); // Logging
 
 // Routes
@@ -63,7 +52,7 @@ app.use(errorHandler);
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running in mode on port ${PORT}`);
 });
 
 // Handle unhandled promise rejections
